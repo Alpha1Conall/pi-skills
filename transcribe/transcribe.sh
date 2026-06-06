@@ -19,20 +19,30 @@ if [ ! -f "$INPUT" ]; then
   exit 1
 fi
 
-TOOLS_DIR="$HOME/.pi/tools/parakeet-cpp-transcribe"
-BIN="$TOOLS_DIR/parakeet-cpp-transcribe"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+EXTENSION_DIR="$(cd "$SCRIPT_DIR/.." && pwd -P)"
+BIN_DIR="$EXTENSION_DIR/bin"
+BIN="$BIN_DIR/parakeet-cpp-transcribe"
 VERSION="parakeet-cpp-transcribe-v0.1.2"
 ASSET="parakeet-cpp-transcribe-macos-arm64.tar.gz"
 URL="https://github.com/badlogic/pibot/releases/download/$VERSION/$ASSET"
 
+CLEANUP_PATHS=()
+cleanup() {
+  for path in "${CLEANUP_PATHS[@]}"; do
+    rm -rf "$path"
+  done
+}
+trap cleanup EXIT
+
 if [ ! -x "$BIN" ] || ! "$BIN" --help 2>/dev/null | grep -q -- "--text"; then
-  mkdir -p "$TOOLS_DIR"
+  mkdir -p "$BIN_DIR"
   TMP_DIR="$(mktemp -d)"
-  trap 'rm -rf "$TMP_DIR"' EXIT
-  echo "Installing parakeet-cpp-transcribe..." >&2
+  CLEANUP_PATHS+=("$TMP_DIR")
+  echo "Installing parakeet-cpp-transcribe into $BIN_DIR..." >&2
   curl -fL "$URL" -o "$TMP_DIR/$ASSET"
   rm -f "$BIN"
-  tar -xzf "$TMP_DIR/$ASSET" -C "$TOOLS_DIR"
+  tar -xzf "$TMP_DIR/$ASSET" -C "$BIN_DIR"
   chmod +x "$BIN"
 fi
 
@@ -44,7 +54,7 @@ if [[ "$LOWER" != *.wav ]]; then
     exit 1
   fi
   TMP_WAV="$(mktemp -t transcribe.XXXXXX).wav"
-  trap 'rm -f "$TMP_WAV"' EXIT
+  CLEANUP_PATHS+=("$TMP_WAV")
   ffmpeg -y -loglevel error -i "$INPUT" -ac 1 -ar 16000 "$TMP_WAV"
   AUDIO="$TMP_WAV"
 fi

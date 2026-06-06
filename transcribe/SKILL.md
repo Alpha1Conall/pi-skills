@@ -13,13 +13,13 @@ Local speech-to-text using `parakeet-cpp-transcribe` on Apple Silicon macOS.
 {baseDir}/transcribe.sh <audio-file>
 ```
 
-The first run downloads the macOS arm64 binary from the latest `badlogic/pibot` GitHub release into:
+The first run downloads the macOS arm64 binary from the latest `badlogic/pibot` GitHub release into the extension's ignored `bin` directory:
 
 ```text
-~/.pi/tools/parakeet-cpp-transcribe/parakeet-cpp-transcribe
+{extensionDir}/bin/parakeet-cpp-transcribe
 ```
 
-The binary downloads its GGUF model automatically if missing.
+(`{extensionDir}` is the parent directory of this skill's `{baseDir}`.) The binary downloads its GGUF model automatically if missing.
 
 ## Output
 
